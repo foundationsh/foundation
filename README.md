@@ -76,7 +76,7 @@
 
 Foundation is a microservice back-end and platform for my projects, allowing easy deployments with an authentication server and database.
 
-Currently, Foundation is adding REST support and, possibly, migrating away from GraphQL; since it wasn't necessary and added more complecity.
+> Currently, Foundation is adding REST support and, possibly, migrating away from GraphQL; since it wasn't necessary and added more complexity.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
