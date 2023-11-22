@@ -393,6 +393,8 @@ public class EcobucksController : Controller
     {
         if (HttpContext.WebSockets.IsWebSocketRequest)
         {
+            Logger.LogInformation("Received a new WebSocket connection request for Ecobucks.");
+
             var webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
             var connectionUUID = Guid.NewGuid();
 

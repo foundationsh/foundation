@@ -41,6 +41,7 @@ public class EcobucksLocationService : IEcobucksLocationService
             switch (result.MessageType)
             {
                 case WebSocketMessageType.Close:
+                    Logger.LogInformation("Received close message for connection {}.", uuid.ToString());
                     await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, CancellationToken.None);
                     break;
 
