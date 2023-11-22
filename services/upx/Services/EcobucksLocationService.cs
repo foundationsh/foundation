@@ -1,6 +1,7 @@
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
+using Foundation.Core.SDK.Auth.JWT;
 using Foundation.Services.UPx.Entities;
 
 namespace Foundation.Services.UPx.Services;
@@ -14,17 +15,24 @@ public interface IEcobucksLocationService
 
 public class EcobucksLocationService : IEcobucksLocationService
 {
+    private IAuthorizationService AuthorizationService { get; }
     private ILogger<EcobucksLocationService> Logger { get; }
 
     private List<LocationClaim> Locations { get; } = new();
 
-    public EcobucksLocationService(ILogger<EcobucksLocationService> logger)
+    public EcobucksLocationService(
+        IAuthorizationService authorizationService,
+        ILogger<EcobucksLocationService> logger
+    )
     {
+        AuthorizationService = authorizationService;
         Logger = logger;
     }
 
     public async Task HandleLocationWebSocketAsync(WebSocket webSocket, Guid uuid)
     {
+        var isAuthenticated = false;
+
         while (webSocket.State == WebSocketState.Open)
         {
             var buffer = new ArraySegment<byte>(new byte[8 * 1024]);
@@ -48,8 +56,32 @@ public class EcobucksLocationService : IEcobucksLocationService
 
                         switch (decoded.MessageType)
                         {
+                            case EcobucksWebSocketMessageType.Authenticate:
+                                {
+                                    var token = decoded.Payload?.Deserialize<string>();
+                                    if (token is null)
+                                        continue;
+
+                                    var authResult = await AuthorizationService.CheckAuthorizationAsync(token);
+                                    if (!authResult.IsValid)
+                                    {
+                                        await webSocket.CloseAsync(
+                                            WebSocketCloseStatus.PolicyViolation,
+                                            "Invalid token.",
+                                            CancellationToken.None
+                                        );
+                                        return;
+                                    }
+
+                                    isAuthenticated = true;
+                                }
+                                break;
+
                             case EcobucksWebSocketMessageType.LocationClaim:
                                 {
+                                    if (!isAuthenticated)
+                                        continue;
+
                                     var location = decoded.Payload?.Deserialize<LocationClaim>();
                                     if (location is null)
                                     {

@@ -4,6 +4,7 @@ namespace Foundation.Services.UPx.Entities;
 
 public enum EcobucksWebSocketMessageType
 {
+    Authenticate,
     LocationClaim,
 }
 
