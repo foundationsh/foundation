@@ -34,9 +34,9 @@ public class EcobucksLocationService : IEcobucksLocationService
     {
         var isAuthenticated = false;
 
-        using IMemoryOwner<byte> memory = MemoryPool<byte>.Shared.Rent(1024 * 4);
         while (webSocket.State == WebSocketState.Open)
         {
+            using IMemoryOwner<byte> memory = MemoryPool<byte>.Shared.Rent(1024 * 4);
             var request = await webSocket.ReceiveAsync(memory.Memory, CancellationToken.None);
 
             switch (request.MessageType)
@@ -98,8 +98,6 @@ public class EcobucksLocationService : IEcobucksLocationService
                     }
                     break;
             }
-
-            memory.Memory.Span.Clear();
         }
     }
 
