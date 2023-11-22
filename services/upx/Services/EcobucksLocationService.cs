@@ -48,6 +48,13 @@ public class EcobucksLocationService : IEcobucksLocationService
 
                 case WebSocketMessageType.Text:
                     {
+                        Console.Write("Bytes: [");
+                        foreach (byte b in memory.Memory.Span.ToArray())
+                        {
+                            Console.WriteLine(b);
+                        }
+                        Console.WriteLine("]");
+
                         var message = Encoding.UTF8.GetString(memory.Memory.Span);
                         Logger.LogInformation("Received message: {}", message);   
 
