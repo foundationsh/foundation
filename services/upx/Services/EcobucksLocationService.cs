@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
@@ -33,12 +34,12 @@ public class EcobucksLocationService : IEcobucksLocationService
     {
         var isAuthenticated = false;
 
+        using IMemoryOwner<byte> memory = MemoryPool<byte>.Shared.Rent(1024 * 4);
         while (webSocket.State == WebSocketState.Open)
         {
-            var buffer = new ArraySegment<byte>(new byte[8 * 1024]);
-            var result = await webSocket.ReceiveAsync(buffer, CancellationToken.None);
+            var request = await webSocket.ReceiveAsync(memory.Memory, CancellationToken.None);
 
-            switch (result.MessageType)
+            switch (request.MessageType)
             {
                 case WebSocketMessageType.Close:
                     Logger.LogInformation("Received close message for connection {}.", uuid.ToString());
@@ -47,9 +48,10 @@ public class EcobucksLocationService : IEcobucksLocationService
 
                 case WebSocketMessageType.Text:
                     {
-                        Logger.LogInformation("Received message: {}", Encoding.UTF8.GetString(buffer.ToArray()).TrimEnd('\0'));   
+                        var message = Encoding.UTF8.GetString(memory.Memory.Span);
+                        Logger.LogInformation("Received message: {}", message);   
 
-                        var decoded = JsonSerializer.Deserialize<EcobucksWebSocketMessage>(buffer);
+                        var decoded = JsonSerializer.Deserialize<EcobucksWebSocketMessage>(memory.Memory[..request.Count].ToString());
                         if (decoded is null)
                         {
                             continue;
