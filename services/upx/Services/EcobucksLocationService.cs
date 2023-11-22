@@ -51,7 +51,7 @@ public class EcobucksLocationService : IEcobucksLocationService
                         var message = Encoding.UTF8.GetString(memory.Memory.Span);
                         Logger.LogInformation("Received message: {}", message);   
 
-                        var decoded = JsonSerializer.Deserialize<EcobucksWebSocketMessage>(memory.Memory[..request.Count].ToString());
+                        var decoded = JsonSerializer.Deserialize<EcobucksWebSocketMessage>(message);
                         if (decoded is null)
                         {
                             continue;
