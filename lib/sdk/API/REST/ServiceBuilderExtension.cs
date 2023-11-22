@@ -5,7 +5,7 @@ namespace Foundation.Core.SDK.API.REST;
 
 public static class ServiceBuilderExtension
 {
-    public static ServiceBuilder UseREST(this ServiceBuilder builder, string? path = null, bool enableSwagger = false, Action<IServiceCollection, ServiceBuilder>? configure = null)
+    public static ServiceBuilder UseREST(this ServiceBuilder builder, string? path = null, bool enableWebSocket = false, bool enableSwagger = false, Action<IServiceCollection, ServiceBuilder>? configure = null)
     {
         builder.Configure((WebApplicationBuilder b) =>
         {
@@ -25,6 +25,9 @@ public static class ServiceBuilderExtension
                 app.UseOpenApi();
                 app.UseSwaggerUi3();
             }
+
+            if (enableWebSocket)
+                app.UseWebSockets();
         });
 
         return builder;

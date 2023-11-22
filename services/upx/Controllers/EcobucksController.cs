@@ -1,5 +1,6 @@
 using System.Net;
 using Foundation.Core.SDK.Database.Mongo;
+using Foundation.Services.UPx.Services;
 using Foundation.Services.UPx.Types.Payloads;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -13,16 +14,25 @@ public class EcobucksController : Controller
 {
     private SDKAuth::IAuthorizationService AuthorizationService { get; }
 
+    private IEcobucksLocationService EcobucksLocationService { get; }
+
     private IRepository<DisposalClaim> DisposalRepository { get; }
     private IRepository<EcobucksProfile> ProfileRepository { get; }
     private IRepository<Transaction> TransactionRepository { get; }
 
     private ILogger<EcobucksController> Logger { get; }
 
-    public EcobucksController(SDKAuth::IAuthorizationService authorizationService, IRepository<EcobucksProfile> profileRepository,
-    IRepository<DisposalClaim> disposalRepository, IRepository<Transaction> transactionRepository, ILogger<EcobucksController> logger)
+    public EcobucksController(
+        SDKAuth::IAuthorizationService authorizationService,
+        IEcobucksLocationService ecobucksLocationService,
+        IRepository<EcobucksProfile> profileRepository,
+        IRepository<DisposalClaim> disposalRepository,
+        IRepository<Transaction> transactionRepository,
+        ILogger<EcobucksController> logger
+    )
     {
         AuthorizationService = authorizationService;
+        EcobucksLocationService = ecobucksLocationService;
 
         DisposalRepository = disposalRepository;
         ProfileRepository = profileRepository;
@@ -376,5 +386,21 @@ public class EcobucksController : Controller
             Successful = true,
             Disposal = disposal
         };
+    }
+
+    [Route("/ecobucks/ws")]
+    public async Task EcobucksWebSocketAsync()
+    {
+        if (HttpContext.WebSockets.IsWebSocketRequest)
+        {
+            var webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
+            var connectionUUID = Guid.NewGuid();
+
+            await EcobucksLocationService.HandleLocationWebSocketAsync(webSocket, connectionUUID);
+        }
+        else
+        {
+            HttpContext.Response.StatusCode = 400;
+        }
     }
 }
