@@ -53,9 +53,7 @@ public class EcobucksLocationService : IEcobucksLocationService
 
                         var decoded = JsonSerializer.Deserialize<EcobucksWebSocketMessage>(message);
                         if (decoded is null)
-                        {
                             continue;
-                        }
 
                         switch (decoded.MessageType)
                         {
@@ -100,6 +98,8 @@ public class EcobucksLocationService : IEcobucksLocationService
                     }
                     break;
             }
+
+            memory.Memory.Span.Clear();
         }
     }
 
