@@ -34,24 +34,10 @@ public class EcobucksLocationService : IEcobucksLocationService
     {
         var isAuthenticated = false;
 
+        using IMemoryOwner<byte> memory = MemoryPool<byte>.Shared.Rent(1024 * 4);
         while (webSocket.State == WebSocketState.Open)
         {
-            using var stream = new MemoryStream();
-            var buffer = new ArraySegment<byte>(new byte[8192]);
-            
-            WebSocketReceiveResult request;
-            do
-            {
-                request = await webSocket.ReceiveAsync(buffer, CancellationToken.None);
-                if (request.Count > 0)
-                    stream.Write(buffer.Array!, buffer.Offset, request.Count);
-                else
-                {
-                    Logger.LogWarning("WS recved zero: {0}, {1}", request.Count, webSocket.State);
-                    break;
-                }
-            }
-            while (!request.EndOfMessage);
+            var request = await webSocket.ReceiveAsync(memory.Memory, CancellationToken.None);
 
             switch (request.MessageType)
             {
@@ -62,10 +48,10 @@ public class EcobucksLocationService : IEcobucksLocationService
 
                 case WebSocketMessageType.Text:
                     {
-                        var message = Encoding.UTF8.GetString(buffer).Trim('\0');
+                        var message = Encoding.UTF8.GetString(memory.Memory.Span).Trim('\0');
                         Logger.LogInformation("Received message: {}", message);   
 
-                        var decoded = JsonSerializer.Deserialize<EcobucksWebSocketMessage>(stream);
+                        var decoded = JsonSerializer.Deserialize<EcobucksWebSocketMessage>(message);
                         if (decoded is null)
                         {
                             continue;
