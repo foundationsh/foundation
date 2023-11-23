@@ -1,6 +1,8 @@
 using System.Net;
+using Foundation.Core.SDK.API.REST;
 using Foundation.Core.SDK.Database.Mongo;
 using Foundation.Services.UPx.Services;
+using Foundation.Services.UPx.Types.Inputs;
 using Foundation.Services.UPx.Types.Payloads;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -414,6 +416,35 @@ public class EcobucksController : Controller
             {
                 Successful = false,
                 Error = $"Failed to get stations.\n{e.Message}"
+            };
+        }
+    }
+
+    [HttpPut]
+    [Route("/ecobucks/stations")]
+    [Authorize]
+    [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(BasePayload))]
+    [ProducesResponseType((int)HttpStatusCode.InternalServerError, Type = typeof(BasePayload))]
+    public BasePayload RegisterEcobucksStationAsync([FromBody] RegisterEcobucksStationInput input)
+    {
+        try
+        {
+            EcobucksLocationService.RegisterLocation(input.Location);
+
+            return new BasePayload
+            {
+                Successful = true
+            };
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e.Message);
+
+            StatusCode(500);
+            return new BasePayload
+            {
+                Successful = false,
+                Error = $"Failed to register station.\n{e.Message}"
             };
         }
     }
