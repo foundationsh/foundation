@@ -388,6 +388,36 @@ public class EcobucksController : Controller
         };
     }
 
+    [HttpGet]
+    [Route("/ecobucks/stations")]
+    [Authorize]
+    [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(GetEcobucksStationsPayload))]
+    [ProducesResponseType((int)HttpStatusCode.InternalServerError, Type = typeof(GetEcobucksStationsPayload))]
+    public GetEcobucksStationsPayload GetEcobucksStations()
+    {
+        try
+        {
+            var stations = EcobucksLocationService.GetLocations();
+
+            return new GetEcobucksStationsPayload
+            {
+                Successful = true,
+                Stations = stations
+            };
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e.Message);
+
+            StatusCode(500);
+            return new GetEcobucksStationsPayload
+            {
+                Successful = false,
+                Error = $"Failed to get stations.\n{e.Message}"
+            };
+        }
+    }
+
     [Route("/ecobucks/ws")]
     public async Task EcobucksWebSocketAsync()
     {
