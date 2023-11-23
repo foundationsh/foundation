@@ -448,22 +448,4 @@ public class EcobucksController : Controller
             };
         }
     }
-
-    [Route("/ecobucks/ws")]
-    public async Task EcobucksWebSocketAsync()
-    {
-        if (HttpContext.WebSockets.IsWebSocketRequest)
-        {
-            Logger.LogInformation("Received a new WebSocket connection request for Ecobucks.");
-
-            var webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
-            var connectionUUID = Guid.NewGuid();
-
-            await EcobucksLocationService.HandleLocationWebSocketAsync(webSocket, connectionUUID);
-        }
-        else
-        {
-            HttpContext.Response.StatusCode = 400;
-        }
-    }
 }
