@@ -398,7 +398,7 @@ public class EcobucksController : Controller
             var webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
             var connectionUUID = Guid.NewGuid();
 
-            _ = EcobucksLocationService.HandleLocationWebSocketAsync(webSocket, connectionUUID);
+            await EcobucksLocationService.HandleLocationWebSocketAsync(webSocket, connectionUUID);
         }
         else
         {
