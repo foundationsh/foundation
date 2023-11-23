@@ -36,8 +36,8 @@ public class EcobucksLocationService : IEcobucksLocationService
 
         while (webSocket.State == WebSocketState.Open)
         {
-            using IMemoryOwner<byte> memory = MemoryPool<byte>.Shared.Rent(1024 * 4);
-            var request = await webSocket.ReceiveAsync(memory.Memory, CancellationToken.None);
+            byte[] buffer = new byte[1024 * 4];
+            var request = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
 
             switch (request.MessageType)
             {
@@ -48,7 +48,7 @@ public class EcobucksLocationService : IEcobucksLocationService
 
                 case WebSocketMessageType.Text:
                     {
-                        var message = Encoding.UTF8.GetString(memory.Memory.Span).Trim('\0');
+                        var message = Encoding.UTF8.GetString(buffer, 0, request.Count).Trim('\0');
                         Logger.LogInformation("Received message: {}", message);   
 
                         var decoded = JsonSerializer.Deserialize<EcobucksWebSocketMessage>(message);
